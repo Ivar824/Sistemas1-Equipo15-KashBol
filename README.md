@@ -9,7 +9,7 @@ Representa el flujo de navegación del usuario desde el inicio de sesión hasta 
 - [Diagrama de navegación - Archivo editable](./docs/design/diagrama-navegacion.drawio)
 - [Diagrama de navegación - PNG](./docs/design/diagrama-navegacion.png)
 
-### 📋 Wireframe - Listado de Clientes
+### Wireframe - Listado de Clientes
 
 Representa la pantalla destinada a consultar y buscar los clientes registrados.
 
