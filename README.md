@@ -12,7 +12,7 @@ Representa el flujo de navegación del usuario desde el inicio de sesión hasta 
 
 Representa la pantalla destinada a consultar y buscar los clientes registrados.
 
-- [Wireframe listado de clientes - PNG](./docs/design/diagrama reporte.png
+- [Wireframe - Listado](docs/design/wireframe-listado.png)
 
 ### Wireframe - Registro de Vehículo
 
