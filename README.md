@@ -53,3 +53,9 @@ En esta sección se encuentran los modelos UML desarrollados mediante PlantUML p
 - [Diagrama de Casos de Uso](./docs/uml/HU04_casos_uso.png)
 - [Diagrama de Secuencia](./docs/uml/HU04_secuencia.png)
 - [Diagrama de Clases](./docs/uml/HU04_clases.png)
+
+## Base de Datos
+
+En esta sección se encuentran los artefactos correspondientes al diseño lógico y físico de la base de datos del Sistema de Gestión para Taller Mecánico.
+
+- [Modelo físico de base de datos - PNG](./docs/database/modelo-fisico-db.png)
