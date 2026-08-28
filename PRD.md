@@ -706,3 +706,71 @@ src/
 │
 ├── App.jsx
 └── main.jsx
+
+## 7. Marco Legal y Ética de Datos
+
+### 7.1 Protección de Datos y Acción de Protección de Privacidad
+
+El Sistema de Gestión para Taller Mecánico almacena datos personales de los clientes, como nombre, apellido, teléfono, correo electrónico y dirección.
+
+De acuerdo con el Artículo 130 de la Constitución Política del Estado Plurinacional de Bolivia, toda persona tiene derecho a conocer, objetar, rectificar o solicitar la eliminación de datos personales almacenados en archivos o bancos de datos públicos o privados.
+
+Para dar cumplimiento a este principio, el sistema deberá contemplar mecanismos que permitan:
+
+- Consultar los datos personales registrados de un cliente.
+- Solicitar la rectificación de información incorrecta o desactualizada.
+- Solicitar la eliminación de los datos personales cuando corresponda.
+- Informar al usuario sobre qué datos se almacenan y para qué finalidad son utilizados.
+- Limitar el acceso a la información únicamente a usuarios autorizados.
+
+Las futuras versiones del sistema incorporarán opciones específicas para editar y eliminar registros de clientes, garantizando que estas acciones estén sujetas a controles de autorización y queden registradas en el historial de auditoría.
+
+### 7.2 Ley N.º 164 y Documentos Digitales
+
+El sistema utilizará tecnologías y formatos interoperables y estándares abiertos siempre que sea posible, con el objetivo de facilitar la portabilidad de la información y evitar dependencias innecesarias de tecnologías propietarias.
+
+Para futuras funcionalidades que requieran documentos electrónicos con valor probatorio, como órdenes de servicio, comprobantes o autorizaciones, se podrá incorporar firma digital conforme al marco establecido por la Ley N.º 164 General de Telecomunicaciones, Tecnologías de Información y Comunicación.
+
+La firma digital permitirá verificar la identidad del firmante y garantizar la integridad de los documentos digitales generados por el sistema.
+
+### 7.3 Seguridad y Confidencialidad
+
+Aunque el Sistema de Gestión para Taller Mecánico no pertenece al sector financiero y no está sujeto directamente a la regulación de ASFI, se adoptarán como referencia buenas prácticas de seguridad de la información.
+
+El sistema deberá aplicar:
+
+- Comunicación segura mediante HTTPS/TLS entre el navegador y los servicios de backend.
+- Control de acceso a la base de datos mediante políticas de seguridad.
+- Principio de mínimo privilegio.
+- Protección de credenciales y claves de acceso.
+- Prohibición de almacenar claves secretas directamente en el código fuente.
+- Validación de datos tanto en la interfaz como en la base de datos.
+- Registro de accesos y operaciones críticas mediante logs de auditoría.
+- Protección de campos personales que requieran un nivel adicional de confidencialidad.
+
+### 7.4 Auditoría y Trazabilidad
+
+Se incorporará una tabla de auditoría que permita registrar operaciones relevantes realizadas sobre información personal.
+
+Cada registro deberá almacenar, como mínimo:
+
+- Usuario que realizó la operación.
+- Acción ejecutada.
+- Tabla o recurso afectado.
+- Identificador del registro afectado.
+- Fecha y hora de la operación.
+- Información necesaria para determinar el origen de la operación.
+
+Los registros de auditoría no deberán ser modificables por usuarios ordinarios del sistema.
+
+### 7.5 Principios Éticos de Tratamiento de Datos
+
+El desarrollo del sistema seguirá los siguientes principios:
+
+- Minimización de datos: almacenar únicamente información necesaria para el funcionamiento del taller.
+- Finalidad: utilizar los datos únicamente para gestionar clientes, vehículos y servicios.
+- Confidencialidad: impedir accesos no autorizados.
+- Integridad: evitar modificaciones indebidas.
+- Transparencia: informar qué información es almacenada.
+- Control del titular: permitir consultar, corregir y solicitar la eliminación de sus datos.
+- Seguridad desde el diseño: incorporar controles de seguridad desde las primeras etapas del desarrollo.

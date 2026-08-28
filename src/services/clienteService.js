@@ -1,8 +1,14 @@
 import { supabase } from './supabaseClient.js';
+import { validators } from '../utils/validators.js';
 
 /**
  * Servicio de acceso a datos para la tabla CLIENTE
  * Columnas exactas: id_cliente, nombre, apellido, telefono, correo, direccion, fecha_registro
+ * 
+ * Cumplimiento Legal (CPE Art. 130 - Derechos ARCO):
+ * - Acceso: listarClientes(), buscarClientes(), buscarPorId()
+ * - Rectificación: actualizarCliente()
+ * - Cancelación / Supresión: eliminarCliente()
  */
 
 export const clienteService = {
@@ -37,6 +43,13 @@ export const clienteService = {
    * @param {Object} clienteData - { nombre, apellido, telefono, correo, direccion }
    */
   async registrarCliente(clienteData) {
+    // Validación previa
+    const { esValido, errores } = validators.validarCliente(clienteData);
+    if (!esValido) {
+      const primerError = Object.values(errores)[0];
+      throw new Error(primerError || 'Datos de cliente no válidos.');
+    }
+
     const { data, error } = await supabase
       .from('CLIENTE')
       .insert([
@@ -68,7 +81,6 @@ export const clienteService = {
     }
 
     try {
-      // Coincidencia parcial con ilike en nombre, apellido o teléfono incluyendo vehículos
       const { data, error } = await supabase
         .from('CLIENTE')
         .select('*, VEHICULO(*)')
@@ -118,5 +130,63 @@ export const clienteService = {
       }
       return data;
     }
+  },
+
+  /**
+   * DERECHO DE RECTIFICACIÓN (CPE Art. 130)
+   * Permite actualizar y corregir los datos personales de un cliente
+   * @param {number|string} idCliente
+   * @param {Object} clienteData
+   */
+  async actualizarCliente(idCliente, clienteData) {
+    const { esValido, errores } = validators.validarCliente(clienteData);
+    if (!esValido) {
+      const primerError = Object.values(errores)[0];
+      throw new Error(primerError || 'Datos de actualización no válidos.');
+    }
+
+    const { data, error } = await supabase
+      .from('CLIENTE')
+      .update({
+        nombre: clienteData.nombre?.trim(),
+        apellido: clienteData.apellido?.trim(),
+        telefono: clienteData.telefono?.trim(),
+        correo: clienteData.correo?.trim() || null,
+        direccion: clienteData.direccion?.trim() || null,
+      })
+      .eq('id_cliente', idCliente)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(error.message || 'Error al actualizar los datos del cliente.');
+    }
+    return data;
+  },
+
+  /**
+   * DERECHO DE CANCELACIÓN / SUPRESIÓN (CPE Art. 130)
+   * Permite eliminar un cliente del sistema.
+   * NOTA LEGAL Y TÉCNICA:
+   * La eliminación física puede ser restringida si el cliente posee vehículos asociados (FK ON DELETE RESTRICT).
+   * En caso de requerirse conservación fiscal/contable o historial de taller, debe aplicarse una política 
+   * de anonimización o bloqueo lógico de datos personales.
+   * @param {number|string} idCliente
+   */
+  async eliminarCliente(idCliente) {
+    const { error } = await supabase
+      .from('CLIENTE')
+      .delete()
+      .eq('id_cliente', idCliente);
+
+    if (error) {
+      if (error.code === '23503' || error.message?.includes('foreign key constraint')) {
+        throw new Error(
+          'No se puede eliminar el cliente porque tiene vehículos registrados asociados. Para suprimir sus datos, debe reasignar o eliminar primero los vehículos relacionados.'
+        );
+      }
+      throw new Error(error.message || 'Error al eliminar el cliente de la base de datos.');
+    }
+    return true;
   },
 };

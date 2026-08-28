@@ -59,3 +59,13 @@ En esta sección se encuentran los modelos UML desarrollados mediante PlantUML p
 En esta sección se encuentran los artefactos correspondientes al diseño lógico y físico de la base de datos del Sistema de Gestión para Taller Mecánico.
 
 - [Modelo físico de base de datos - PNG](./docs/database/modelo-fisico-db.png)
+- [Esquema DDL Inicial - SQL](./docs/database/schema.sql)
+- [Script de Seguridad y Cumplimiento (Fase C) - SQL](./docs/database/security_compliance.sql)
+
+## Seguridad y Cumplimiento
+
+Documentación técnica y legal sobre la protección de datos personales, autenticación, control de accesos y pistas de auditoría:
+
+- [Especificación del Producto y Requerimientos de Seguridad](./PRD.md)
+- [Informe de Auditoría y Matriz de Cumplimiento Legal-Tech](./docs/security/auditoria-cumplimiento.md)
+- [Script de Endurecimiento RLS, Auditoría y Constraints (Fase C)](./docs/database/security_compliance.sql)

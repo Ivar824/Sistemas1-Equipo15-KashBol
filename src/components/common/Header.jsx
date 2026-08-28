@@ -1,7 +1,7 @@
 import React from 'react';
-import { Wrench } from 'lucide-react';
+import { Wrench, ShieldCheck, User } from 'lucide-react';
 
-export default function Header({ currentModule }) {
+export default function Header({ currentModule, user }) {
   return (
     <header className="h-16 border-b border-taller-border bg-taller-surface px-6 flex items-center justify-between">
       <div className="flex items-center space-x-3">
@@ -18,10 +18,16 @@ export default function Header({ currentModule }) {
         </div>
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3">
+        {user && (
+          <div className="hidden sm:flex items-center space-x-2 bg-taller-card px-3 py-1.5 rounded-lg border border-taller-border text-xs text-gray-300">
+            <User className="w-3.5 h-3.5 text-blue-400" />
+            <span className="font-mono text-gray-200">{user.email}</span>
+          </div>
+        )}
         <div className="flex items-center space-x-2 bg-taller-card px-3 py-1.5 rounded-full border border-taller-border text-xs text-taller-textMuted">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>Sprint 1 Activo</span>
+          <span className="hidden md:inline">Sprint 1 • Autenticado</span>
         </div>
       </div>
     </header>

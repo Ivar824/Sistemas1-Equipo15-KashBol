@@ -7,10 +7,11 @@ import {
   Package, 
   CreditCard, 
   BarChart3, 
-  LogOut 
+  LogOut,
+  ShieldCheck 
 } from 'lucide-react';
 
-export default function Sidebar({ activeTab, setActiveTab }) {
+export default function Sidebar({ activeTab, setActiveTab, onLogout, user }) {
   const navItems = [
     { id: 'dashboard', label: 'PANEL', icon: LayoutDashboard, enabled: true },
     { id: 'clientes', label: 'CLIENTES', icon: Users, enabled: true, badge: 'HU-01 / HU-02' },
@@ -45,7 +46,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
                 key={item.id}
                 onClick={() => item.enabled && setActiveTab(item.id)}
                 disabled={!item.enabled}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                   isActive
                     ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/30'
                     : item.enabled
@@ -76,11 +77,23 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         </nav>
       </div>
 
-      {/* Footer / Logout button */}
-      <div className="p-3 border-t border-taller-border">
+      {/* Footer / User info & Logout button */}
+      <div className="p-3 border-t border-taller-border space-y-2">
+        {user && (
+          <div className="px-3.5 py-2 bg-taller-card/60 border border-taller-border/60 rounded-lg">
+            <div className="text-[10px] uppercase font-bold text-gray-400 flex items-center gap-1">
+              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              <span>Sesión Activa</span>
+            </div>
+            <div className="text-xs font-mono text-gray-200 truncate mt-0.5" title={user.email}>
+              {user.email}
+            </div>
+          </div>
+        )}
+
         <button
-          onClick={() => alert('Sesión de usuario activa en modo demostración.')}
-          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-950/30 hover:text-red-300 transition-colors"
+          onClick={onLogout}
+          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-950/30 hover:text-red-300 transition-colors cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
           <span>CERRAR SESIÓN</span>
