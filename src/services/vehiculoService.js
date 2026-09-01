@@ -148,4 +148,21 @@ export const vehiculoService = {
       };
     }
   },
+
+    /**
+   * Obtener cantidad total de vehículos registrados
+   * Utilizado por el Dashboard
+   */
+  async contarVehiculos() {
+    const { count, error } = await supabase
+      .from('VEHICULO')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('[vehiculoService] Error al contar vehículos:', error);
+      throw new Error('No se pudo obtener el total de vehículos.');
+    }
+
+    return count || 0;
+  },
 };

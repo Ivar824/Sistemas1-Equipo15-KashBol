@@ -1,19 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { clienteService } from '../../services/clienteService.js';
 import { validators } from '../../utils/validators.js';
 import Alert from '../common/Alert.jsx';
 import { Loader2, Save } from 'lucide-react';
 
-export default function ClienteForm({ onSuccess, onCancel }) {
+export default function ClienteForm({
+  onSuccess,
+  onCancel,
+  clienteInicial = null,
+}) {
+  const esEdicion = Boolean(clienteInicial?.id_cliente);
   // Estado de los campos del formulario
-  const [formData, setFormData] = useState({
-    nombre: '',
-    apellido: '',
-    telefono: '',
-    correo: '',
-    direccion: '',
-  });
+ const [formData, setFormData] = useState({
+  nombre: clienteInicial?.nombre || '',
+  apellido: clienteInicial?.apellido || '',
+  telefono: clienteInicial?.telefono || '',
+  correo: clienteInicial?.correo || '',
+  direccion: clienteInicial?.direccion || '',
+});
 
+useEffect(() => {
+  if (clienteInicial) {
+    setFormData({
+      nombre: clienteInicial.nombre || '',
+      apellido: clienteInicial.apellido || '',
+      telefono: clienteInicial.telefono || '',
+      correo: clienteInicial.correo || '',
+      direccion: clienteInicial.direccion || '',
+    });
+  }
+}, [clienteInicial]);
   // Estado de errores por campo
   const [fieldErrors, setFieldErrors] = useState({});
 
@@ -67,40 +83,54 @@ export default function ClienteForm({ onSuccess, onCancel }) {
     // 2. Enviar a Supabase a través de clienteService
     setIsLoading(true);
     try {
-      const nuevoCliente = await clienteService.registrarCliente(formData);
+    let clienteGuardado;
 
-      // Mostrar confirmación de éxito
-      setAlertInfo({
-        type: 'success',
-        message: `¡Cliente "${nuevoCliente.nombre} ${nuevoCliente.apellido}" registrado con éxito! (ID: ${nuevoCliente.id_cliente})`,
-      });
+if (esEdicion) {
+  clienteGuardado = await clienteService.actualizarCliente(
+    clienteInicial.id_cliente,
+    formData
+  );
 
-      // Limpiar el formulario
-      setFormData({
-        nombre: '',
-        apellido: '',
-        telefono: '',
-        correo: '',
-        direccion: '',
-      });
-      setFieldErrors({});
+  setAlertInfo({
+    type: 'success',
+    message: `¡Cliente "${clienteGuardado.nombre} ${clienteGuardado.apellido}" actualizado correctamente!`,
+  });
+} else {
+  clienteGuardado = await clienteService.registrarCliente(formData);
 
-      // Notificar al componente padre si se proporcionó callback
-      if (onSuccess) {
-        onSuccess(nuevoCliente);
-      }
+  setAlertInfo({
+    type: 'success',
+    message: `¡Cliente "${clienteGuardado.nombre} ${clienteGuardado.apellido}" registrado con éxito! (ID: ${clienteGuardado.id_cliente})`,
+  });
+
+  setFormData({
+    nombre: '',
+    apellido: '',
+    telefono: '',
+    correo: '',
+    direccion: '',
+  });
+}
+
+setFieldErrors({});
+
+if (onSuccess) {
+  onSuccess(clienteGuardado);
+}
     } catch (error) {
-      console.error('Error al registrar cliente:', error);
-      let mensajeError = 'Ocurrió un error al guardar el cliente en Supabase.';
-      
-      if (error?.message) {
-        mensajeError = `Error de Supabase: ${error.message}`;
-      }
-      
-      setAlertInfo({
-        type: 'error',
-        message: mensajeError,
-      });
+  console.error(
+    esEdicion ? 'Error al actualizar cliente:' : 'Error al registrar cliente:',
+    error
+  );
+
+  setAlertInfo({
+    type: 'error',
+    message:
+      error?.message ||
+      (esEdicion
+        ? 'No se pudieron actualizar los datos del cliente.'
+        : 'No se pudo registrar el cliente.'),
+  });
     } finally {
       setIsLoading(false);
     }
@@ -277,16 +307,16 @@ export default function ClienteForm({ onSuccess, onCancel }) {
           className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800/60 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors shadow-sm"
         >
           {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Registrando...</span>
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4" />
-              <span>Guardar Cliente</span>
-            </>
-          )}
+  <>
+    <Loader2 className="w-4 h-4 animate-spin" />
+    <span>{esEdicion ? 'Actualizando...' : 'Registrando...'}</span>
+  </>
+) : (
+  <>
+    <Save className="w-4 h-4" />
+    <span>{esEdicion ? 'Actualizar Cliente' : 'Guardar Cliente'}</span>
+  </>
+)}
         </button>
       </div>
     </form>

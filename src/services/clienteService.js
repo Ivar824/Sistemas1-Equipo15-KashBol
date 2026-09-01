@@ -189,4 +189,21 @@ export const clienteService = {
     }
     return true;
   },
+
+    /**
+   * Obtener cantidad total de clientes registrados
+   * Utilizado por el Dashboard
+   */
+  async contarClientes() {
+    const { count, error } = await supabase
+      .from('CLIENTE')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('[clienteService] Error al contar clientes:', error);
+      throw new Error('No se pudo obtener el total de clientes.');
+    }
+
+    return count || 0;
+  },
 };

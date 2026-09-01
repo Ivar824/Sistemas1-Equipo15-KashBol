@@ -17,6 +17,8 @@ import ClienteDetailModal from '../components/clientes/ClienteDetailModal.jsx';
 import Modal from '../components/common/Modal.jsx';
 import Alert from '../components/common/Alert.jsx';
 
+import { masking } from '../utils/masking.js';
+
 export default function ClientesPage() {
   const [clientes, setClientes] = useState([]);
   const [criterioBusqueda, setCriterioBusqueda] = useState('');
@@ -100,6 +102,32 @@ export default function ClientesPage() {
     setClienteSeleccionado(cliente);
     setIsDetailModalOpen(true);
   };
+
+  const handleClienteActualizado = async (clienteActualizado) => {
+  try {
+    // Recargar el cliente completo para conservar vehículos asociados
+    const clienteCompleto = await clienteService.buscarPorId(
+      clienteActualizado.id_cliente
+    );
+
+    setClienteSeleccionado(clienteCompleto);
+
+    // Actualizar también la tabla general
+    await cargarClientes(busquedaActiva);
+
+    setGeneralAlert({
+      type: 'success',
+      message: `Cliente "${clienteActualizado.nombre} ${clienteActualizado.apellido}" actualizado correctamente.`,
+    });
+  } catch (error) {
+    console.error('Error al refrescar cliente actualizado:', error);
+
+    setGeneralAlert({
+      type: 'error',
+      message: 'El cliente fue actualizado, pero no se pudo refrescar la información.',
+    });
+  }
+};
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-6">
@@ -313,15 +341,37 @@ export default function ClientesPage() {
                       <td className="px-5 py-4">
                         {c.apellido}
                       </td>
-                      <td className="px-5 py-4 font-mono text-gray-200">
-                        {c.telefono}
-                      </td>
-                      <td className="px-5 py-4 text-xs text-gray-400 max-w-[140px] truncate">
-                        {c.correo || <span className="italic text-gray-600">Sin correo</span>}
-                      </td>
-                      <td className="px-5 py-4 text-xs text-gray-400 max-w-[140px] truncate">
-                        {c.direccion || <span className="italic text-gray-600">Sin dirección</span>}
-                      </td>
+                      {/* Teléfono protegido */}
+<td
+  className="px-5 py-4 font-mono text-gray-200"
+  title="Dato protegido por privacidad"
+>
+  {masking.enmascararTelefono(c.telefono)}
+</td>
+
+{/* Correo protegido */}
+<td
+  className="px-5 py-4 text-xs text-gray-400 max-w-[140px] truncate"
+  title="Dato protegido por privacidad"
+>
+  {c.correo ? (
+    masking.enmascararCorreo(c.correo)
+  ) : (
+    <span className="italic text-gray-600">Sin correo</span>
+  )}
+</td>
+
+{/* Dirección protegida */}
+<td
+  className="px-5 py-4 text-xs text-gray-400 max-w-[140px] truncate"
+  title="Dato protegido por privacidad"
+>
+  {c.direccion ? (
+    masking.enmascararDireccion(c.direccion)
+  ) : (
+    <span className="italic text-gray-600">Sin dirección</span>
+  )}
+</td>
                       <td className="px-5 py-4">
                         {vehiculos.length > 0 ? (
                           <div className="flex flex-wrap gap-1 max-w-[150px]">
@@ -374,10 +424,11 @@ export default function ClientesPage() {
 
       {/* Modal de Detalle de Cliente y Vehículos Asociados (HU-02) */}
       <ClienteDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        cliente={clienteSeleccionado}
-      />
+  isOpen={isDetailModalOpen}
+  onClose={() => setIsDetailModalOpen(false)}
+  cliente={clienteSeleccionado}
+  onUpdated={handleClienteActualizado}
+/>
     </div>
   );
 }
