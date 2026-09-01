@@ -241,4 +241,124 @@ export const servicioService = {
 
     return data;
   },
+
+    /**
+   * Consultar los repuestos utilizados en una orden
+   */
+  async listarRepuestosDelServicio(idServicio) {
+    const { data, error } = await supabase
+      .from('SERVICIO_REPUESTO')
+      .select(`
+        id_servicio_repuesto,
+        id_servicio,
+        id_repuesto,
+        cantidad,
+        precio_unitario,
+        subtotal,
+        fecha_registro,
+        REPUESTO:id_repuesto (
+          id_repuesto,
+          codigo,
+          nombre,
+          descripcion
+        )
+      `)
+      .eq('id_servicio', idServicio)
+      .order('id_servicio_repuesto', {
+        ascending: false,
+      });
+
+    if (error) {
+      console.error(
+        '[servicioService] Error al consultar repuestos utilizados:',
+        error
+      );
+
+      throw new Error(
+        'No se pudieron cargar los repuestos utilizados.'
+      );
+    }
+
+    return data || [];
+  },
+
+  /**
+   * Registrar un repuesto utilizado en una orden.
+   *
+   * PostgreSQL registra la relación y descuenta el stock
+   * automáticamente mediante la función segura RPC.
+   */
+  async registrarRepuestoEnServicio(
+    idServicio,
+    idRepuesto,
+    cantidad
+  ) {
+    const cantidadNumero = Number(cantidad);
+
+    if (!idServicio) {
+      throw new Error(
+        'No se pudo identificar la orden de servicio.'
+      );
+    }
+
+    if (!idRepuesto) {
+      throw new Error(
+        'Debe seleccionar un repuesto.'
+      );
+    }
+
+    if (
+      !Number.isInteger(cantidadNumero) ||
+      cantidadNumero <= 0
+    ) {
+      throw new Error(
+        'La cantidad debe ser un número entero mayor a cero.'
+      );
+    }
+
+    const { data, error } = await supabase.rpc(
+      'registrar_repuesto_en_servicio',
+      {
+        p_id_servicio: Number(idServicio),
+        p_id_repuesto: Number(idRepuesto),
+        p_cantidad: cantidadNumero,
+      }
+    );
+
+    if (error) {
+      console.error(
+        '[servicioService] Error al registrar repuesto en servicio:',
+        error
+      );
+
+      const mensaje = error.message || '';
+
+      if (
+        mensaje
+          .toLowerCase()
+          .includes('stock insuficiente')
+      ) {
+        throw new Error(mensaje);
+      }
+
+      if (
+        mensaje
+          .toLowerCase()
+          .includes('finalizada')
+      ) {
+        throw new Error(
+          'No se pueden agregar repuestos porque la orden ya está finalizada o entregada.'
+        );
+      }
+
+      throw new Error(
+        mensaje ||
+          'No se pudo registrar el repuesto utilizado.'
+      );
+    }
+
+    return Array.isArray(data)
+      ? data[0]
+      : data;
+  },
 };

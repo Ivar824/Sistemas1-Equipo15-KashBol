@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import ClientesPage from './pages/ClientesPage.jsx';
 import VehiculosPage from './pages/VehiculosPage.jsx';
 import ServiciosPage from './pages/ServiciosPage.jsx';
+import RepuestosPage from './pages/RepuestosPage.jsx';
 import { Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -61,6 +62,8 @@ export default function App() {
         return 'Gestión de Vehículos (HU-03 / HU-04)';
       case 'servicios':
         return 'Gestión de Servicios (Sprint 2)';
+        case 'repuestos':
+  return 'Gestión de Repuestos (Sprint 2)';
       default:
         return 'Taller Mecánico';
     }
@@ -103,6 +106,7 @@ export default function App() {
 {activeTab === 'clientes' && <ClientesPage />}
 {activeTab === 'vehiculos' && <VehiculosPage />}
 {activeTab === 'servicios' && <ServiciosPage />}
+{activeTab === 'repuestos' && <RepuestosPage />}
         </main>
       </div>
     </div>

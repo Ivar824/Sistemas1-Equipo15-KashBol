@@ -17,7 +17,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user }) {
     { id: 'clientes', label: 'CLIENTES', icon: Users, enabled: true, badge: 'HU-01 / HU-02' },
     { id: 'vehiculos', label: 'VEHÍCULOS', icon: Car, enabled: true, badge: 'HU-03 / HU-04' },
     { id: 'servicios', label: 'SERVICIOS', icon: Wrench, enabled: true, badge: 'Sprint 2' },
-    { id: 'repuestos', label: 'REPUESTOS', icon: Package, enabled: false, badge: 'Sprint 2' },
+    { id: 'repuestos', label: 'REPUESTOS', icon: Package, enabled: true, badge: 'Sprint 2' },
     { id: 'pagos', label: 'PAGOS', icon: CreditCard, enabled: false, badge: 'Sprint 3' },
     { id: 'informes', label: 'INFORMES', icon: BarChart3, enabled: false, badge: 'Sprint 3' },
   ];

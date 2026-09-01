@@ -11,10 +11,12 @@ import {
   Eye,
   Calendar,
   ArrowRight,
+  Package,
 } from 'lucide-react';
 
 import { servicioService } from '../services/servicioService.js';
 import ServicioForm from '../components/servicios/ServicioForm.jsx';
+import ServicioRepuestoForm from '../components/servicios/ServicioRepuestoForm.jsx';
 import Modal from '../components/common/Modal.jsx';
 import Alert from '../components/common/Alert.jsx';
 
@@ -41,6 +43,9 @@ export default function ServiciosPage() {
   // Notificaciones
   const [generalAlert, setGeneralAlert] = useState(null);
   const [actualizandoEstado, setActualizandoEstado] = useState(false);
+  const [repuestosServicio, setRepuestosServicio] = useState([]);
+const [loadingRepuestosServicio, setLoadingRepuestosServicio] = useState(false);
+const [mostrarFormularioRepuesto, setMostrarFormularioRepuesto] = useState(false);
 
   /**
    * Cargar estadísticas y listado desde Supabase
@@ -96,13 +101,68 @@ export default function ServiciosPage() {
     }, 800);
   };
 
+  const cargarRepuestosServicio = async (idServicio) => {
+  try {
+    setLoadingRepuestosServicio(true);
+
+    const data =
+      await servicioService.listarRepuestosDelServicio(
+        idServicio
+      );
+
+    setRepuestosServicio(data || []);
+  } catch (error) {
+    console.error(
+      '[ServiciosPage] Error al cargar repuestos de la orden:',
+      error
+    );
+
+    setGeneralAlert({
+      type: 'error',
+      message:
+        error?.message ||
+        'No se pudieron cargar los repuestos utilizados.',
+    });
+  } finally {
+    setLoadingRepuestosServicio(false);
+  }
+};
+
   /**
    * Abrir detalle de una orden
    */
-  const handleVerDetalle = (servicio) => {
-    setServicioSeleccionado(servicio);
-    setIsDetailModalOpen(true);
-  };
+  const handleVerDetalle = async (servicio) => {
+  setServicioSeleccionado(servicio);
+  setRepuestosServicio([]);
+  setMostrarFormularioRepuesto(false);
+  setIsDetailModalOpen(true);
+
+  await cargarRepuestosServicio(
+    servicio.id_servicio
+  );
+};
+
+const handleRepuestoAgregado = async () => {
+  if (!servicioSeleccionado) return;
+
+  await cargarRepuestosServicio(
+    servicioSeleccionado.id_servicio
+  );
+
+  setMostrarFormularioRepuesto(false);
+
+  setGeneralAlert({
+    type: 'success',
+    message: `Repuesto agregado correctamente a la orden #${servicioSeleccionado.id_servicio}. El stock fue actualizado automáticamente.`,
+  });
+};
+
+const permiteAgregarRepuestos = (estado) => {
+  return ![
+    'Finalizado',
+    'Entregado',
+  ].includes(estado);
+};
 
   /**
    * Color visual del estado
@@ -681,6 +741,172 @@ const handleAvanzarEstado = async () => {
                   'Sin observaciones'}
               </p>
             </div>
+
+            {/* Repuestos utilizados */}
+<div className="border-t border-taller-border pt-5">
+
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+
+    <div>
+      <h4 className="text-sm font-bold text-gray-100 uppercase flex items-center gap-2">
+        <Package className="w-4 h-4 text-blue-400" />
+        Repuestos Utilizados
+      </h4>
+
+      <p className="text-xs text-gray-500 mt-1">
+        Materiales utilizados en esta reparación
+      </p>
+    </div>
+
+    {permiteAgregarRepuestos(
+      servicioSeleccionado.estado
+    ) && (
+      <button
+        type="button"
+        onClick={() =>
+          setMostrarFormularioRepuesto(
+            !mostrarFormularioRepuesto
+          )
+        }
+        className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold"
+      >
+        <Plus className="w-3.5 h-3.5" />
+
+        {mostrarFormularioRepuesto
+          ? 'CANCELAR'
+          : 'AGREGAR REPUESTO'}
+      </button>
+    )}
+
+  </div>
+
+  {/* Formulario */}
+  {mostrarFormularioRepuesto && (
+    <div className="mb-5 bg-taller-card border border-taller-border rounded-xl p-4">
+
+      <ServicioRepuestoForm
+        idServicio={
+          servicioSeleccionado.id_servicio
+        }
+        onSuccess={handleRepuestoAgregado}
+        onCancel={() =>
+          setMostrarFormularioRepuesto(false)
+        }
+      />
+
+    </div>
+  )}
+
+  {/* Cargando */}
+  {loadingRepuestosServicio ? (
+
+    <div className="flex items-center justify-center gap-2 py-6 text-sm text-gray-400">
+
+      <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+
+      Cargando repuestos utilizados...
+
+    </div>
+
+  ) : repuestosServicio.length === 0 ? (
+
+    <div className="border border-dashed border-taller-border rounded-xl py-6 text-center">
+
+      <Package className="w-6 h-6 text-gray-600 mx-auto mb-2" />
+
+      <p className="text-xs text-gray-500">
+        No se utilizaron repuestos en esta orden.
+      </p>
+
+    </div>
+
+  ) : (
+
+    <div className="space-y-2">
+
+      {repuestosServicio.map((item) => (
+
+        <div
+          key={item.id_servicio_repuesto}
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-taller-surface border border-taller-border rounded-lg px-4 py-3"
+        >
+
+          <div>
+
+            <div className="flex items-center gap-2">
+
+              <span className="font-mono text-xs font-bold text-blue-400">
+                {item.REPUESTO?.codigo ||
+                  `#${item.id_repuesto}`}
+              </span>
+
+              <span className="text-sm font-semibold text-gray-200">
+                {item.REPUESTO?.nombre ||
+                  'Repuesto'}
+              </span>
+
+            </div>
+
+            <p className="text-xs text-gray-500 mt-1">
+              {item.cantidad} × Bs{' '}
+              {Number(
+                item.precio_unitario
+              ).toFixed(2)}
+            </p>
+
+          </div>
+
+          <div className="text-right">
+
+            <p className="text-xs text-gray-500">
+              Subtotal
+            </p>
+
+            <p className="text-sm font-bold text-emerald-300">
+              Bs{' '}
+              {Number(item.subtotal).toFixed(2)}
+            </p>
+
+          </div>
+
+        </div>
+
+      ))}
+
+      {/* Total repuestos */}
+      <div className="flex items-center justify-between border-t border-taller-border pt-3 mt-3">
+
+        <span className="text-sm font-semibold text-gray-300">
+          Total en repuestos
+        </span>
+
+        <span className="text-lg font-bold text-blue-300">
+          Bs{' '}
+          {repuestosServicio
+            .reduce(
+              (total, item) =>
+                total +
+                Number(item.subtotal || 0),
+              0
+            )
+            .toFixed(2)}
+        </span>
+
+      </div>
+
+    </div>
+
+  )}
+
+  {!permiteAgregarRepuestos(
+    servicioSeleccionado.estado
+  ) && (
+    <p className="text-xs text-orange-300 mt-3">
+      Esta orden está cerrada. Ya no se pueden agregar repuestos.
+    </p>
+  )}
+
+</div>
 
             {/* Fecha */}
             <div className="pt-3 border-t border-taller-border">
