@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import ClientesPage from './pages/ClientesPage.jsx';
 import VehiculosPage from './pages/VehiculosPage.jsx';
+import ServiciosPage from './pages/ServiciosPage.jsx';
 import { Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -58,6 +59,8 @@ export default function App() {
         return 'Gestión de Clientes (HU-01 / HU-02)';
       case 'vehiculos':
         return 'Gestión de Vehículos (HU-03 / HU-04)';
+      case 'servicios':
+        return 'Gestión de Servicios (Sprint 2)';
       default:
         return 'Taller Mecánico';
     }
@@ -96,9 +99,10 @@ export default function App() {
         <Header currentModule={getModuleTitle()} user={session.user} />
 
         <main className="flex-1 overflow-y-auto bg-taller-bg">
-          {activeTab === 'dashboard' && <DashboardPage setActiveTab={setActiveTab} />}
-          {activeTab === 'clientes' && <ClientesPage />}
-          {activeTab === 'vehiculos' && <VehiculosPage />}
+{activeTab === 'dashboard' && <DashboardPage setActiveTab={setActiveTab} />}
+{activeTab === 'clientes' && <ClientesPage />}
+{activeTab === 'vehiculos' && <VehiculosPage />}
+{activeTab === 'servicios' && <ServiciosPage />}
         </main>
       </div>
     </div>
