@@ -5,21 +5,40 @@ import { validators } from '../../utils/validators.js';
 import Alert from '../common/Alert.jsx';
 import { Loader2, Save } from 'lucide-react';
 
-export default function VehiculoForm({ onSuccess, onCancel }) {
+export default function VehiculoForm({
+  onSuccess,
+  onCancel,
+  vehiculoInicial = null,
+}) {
+  const esEdicion = Boolean(vehiculoInicial?.id_vehiculo);
   // Lista de clientes disponibles para seleccionar como propietario
   const [clientes, setClientes] = useState([]);
   const [loadingClientes, setLoadingClientes] = useState(true);
 
   // Estado de los campos del formulario
-  const [formData, setFormData] = useState({
-    id_cliente: '',
-    placa: '',
-    marca: '',
-    modelo: '',
-    anio: '',
-    color: '',
-    tipo: 'Automóvil',
+    const [formData, setFormData] = useState({
+    id_cliente: vehiculoInicial?.id_cliente || '',
+    placa: vehiculoInicial?.placa || '',
+    marca: vehiculoInicial?.marca || '',
+    modelo: vehiculoInicial?.modelo || '',
+    anio: vehiculoInicial?.anio || '',
+    color: vehiculoInicial?.color || '',
+    tipo: vehiculoInicial?.tipo || 'Automóvil',
   });
+
+    useEffect(() => {
+    if (vehiculoInicial) {
+      setFormData({
+        id_cliente: vehiculoInicial.id_cliente || '',
+        placa: vehiculoInicial.placa || '',
+        marca: vehiculoInicial.marca || '',
+        modelo: vehiculoInicial.modelo || '',
+        anio: vehiculoInicial.anio || '',
+        color: vehiculoInicial.color || '',
+        tipo: vehiculoInicial.tipo || 'Automóvil',
+      });
+    }
+  }, [vehiculoInicial]);
 
   // Estado de errores por campo
   const [fieldErrors, setFieldErrors] = useState({});
@@ -105,40 +124,64 @@ export default function VehiculoForm({ onSuccess, onCancel }) {
 
     // 2. Enviar a Supabase mediante vehiculoService
     setIsLoading(true);
-    try {
-      const nuevoVehiculo = await vehiculoService.registrarVehiculo(formData);
 
-      // Mostrar confirmación de éxito
-      setAlertInfo({
-        type: 'success',
-        message: `¡Vehículo placa "${nuevoVehiculo.placa}" (${nuevoVehiculo.marca} ${nuevoVehiculo.modelo}) registrado con éxito! (ID: #${nuevoVehiculo.id_vehiculo})`,
-      });
+try {
+  let vehiculoGuardado;
 
-      // Limpiar el formulario manteniendo el tipo por defecto
-      setFormData({
-        id_cliente: '',
-        placa: '',
-        marca: '',
-        modelo: '',
-        anio: '',
-        color: '',
-        tipo: 'Automóvil',
-      });
-      setFieldErrors({});
+  if (esEdicion) {
+    vehiculoGuardado = await vehiculoService.actualizarVehiculo(
+      vehiculoInicial.id_vehiculo,
+      formData
+    );
 
-      // Notificar al componente padre
-      if (onSuccess) {
-        onSuccess(nuevoVehiculo);
-      }
-    } catch (error) {
-      console.error('Error al registrar vehículo:', error);
-      setAlertInfo({
-        type: 'error',
-        message: error.message || 'Ocurrió un error al registrar el vehículo en la base de datos.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    setAlertInfo({
+      type: 'success',
+      message: `¡Vehículo placa "${vehiculoGuardado.placa}" actualizado correctamente!`,
+    });
+  } else {
+    vehiculoGuardado = await vehiculoService.registrarVehiculo(formData);
+
+    setAlertInfo({
+      type: 'success',
+      message: `¡Vehículo placa "${vehiculoGuardado.placa}" (${vehiculoGuardado.marca} ${vehiculoGuardado.modelo}) registrado con éxito! (ID: #${vehiculoGuardado.id_vehiculo})`,
+    });
+
+    // Limpiar solamente cuando estamos registrando
+    setFormData({
+      id_cliente: '',
+      placa: '',
+      marca: '',
+      modelo: '',
+      anio: '',
+      color: '',
+      tipo: 'Automóvil',
+    });
+  }
+
+  setFieldErrors({});
+
+  if (onSuccess) {
+    onSuccess(vehiculoGuardado);
+  }
+} catch (error) {
+  console.error(
+    esEdicion
+      ? 'Error al actualizar vehículo:'
+      : 'Error al registrar vehículo:',
+    error
+  );
+
+  setAlertInfo({
+    type: 'error',
+    message:
+      error?.message ||
+      (esEdicion
+        ? 'No se pudo actualizar el vehículo.'
+        : 'No se pudo registrar el vehículo.'),
+  });
+} finally {
+  setIsLoading(false);
+}
   };
 
   const currentYear = new Date().getFullYear();
@@ -387,16 +430,20 @@ export default function VehiculoForm({ onSuccess, onCancel }) {
           className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800/60 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors shadow-sm cursor-pointer"
         >
           {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Registrando vehículo...</span>
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4" />
-              <span>Guardar Vehículo</span>
-            </>
-          )}
+  <>
+    <Loader2 className="w-4 h-4 animate-spin" />
+    <span>
+      {esEdicion ? 'Actualizando vehículo...' : 'Registrando vehículo...'}
+    </span>
+  </>
+) : (
+  <>
+    <Save className="w-4 h-4" />
+    <span>
+      {esEdicion ? 'Actualizar Vehículo' : 'Guardar Vehículo'}
+    </span>
+  </>
+)}
         </button>
       </div>
     </form>

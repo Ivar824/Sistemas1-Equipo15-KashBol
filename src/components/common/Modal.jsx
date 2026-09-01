@@ -1,7 +1,13 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 
-export default function Modal({ isOpen, onClose, title, children }) {
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  maxWidth = 'max-w-lg',
+}) {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
@@ -17,7 +23,7 @@ export default function Modal({ isOpen, onClose, title, children }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
       <div 
-        className="w-full max-w-lg bg-taller-card border border-taller-border rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className={`w-full ${maxWidth} bg-taller-card border border-taller-border rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

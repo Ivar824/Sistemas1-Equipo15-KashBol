@@ -165,4 +165,61 @@ export const vehiculoService = {
 
     return count || 0;
   },
+
+    /**
+   * Actualizar un vehículo existente
+   * Permite modificar placa, propietario y datos técnicos.
+   */
+  async actualizarVehiculo(idVehiculo, vehiculoData) {
+    const placaLimpia = vehiculoData.placa?.trim().toUpperCase();
+
+    // Verificar que la placa no pertenezca a otro vehículo
+    const { data: placaExistente, error: placaError } = await supabase
+      .from('VEHICULO')
+      .select('id_vehiculo')
+      .ilike('placa', placaLimpia)
+      .neq('id_vehiculo', idVehiculo)
+      .maybeSingle();
+
+    if (placaError) {
+      throw new Error('No se pudo verificar la disponibilidad de la placa.');
+    }
+
+    if (placaExistente) {
+      throw new Error('Ya existe otro vehículo registrado con esta placa.');
+    }
+
+    const { data, error } = await supabase
+      .from('VEHICULO')
+      .update({
+        placa: placaLimpia,
+        marca: vehiculoData.marca?.trim(),
+        modelo: vehiculoData.modelo?.trim(),
+        anio: parseInt(vehiculoData.anio, 10),
+        color: vehiculoData.color?.trim() || null,
+        tipo: vehiculoData.tipo?.trim(),
+        id_cliente: Number(vehiculoData.id_cliente),
+      })
+      .eq('id_vehiculo', idVehiculo)
+      .select(
+        '*, CLIENTE:id_cliente (id_cliente, nombre, apellido, telefono, correo, direccion)'
+      )
+      .single();
+
+    if (error) {
+      if (
+        error.code === '23505' ||
+        error.message?.includes('duplicate key') ||
+        error.message?.includes('unique constraint')
+      ) {
+        throw new Error('Ya existe otro vehículo registrado con esta placa.');
+      }
+
+      throw new Error(
+        error.message || 'No se pudo actualizar el vehículo.'
+      );
+    }
+
+    return data;
+  },
 };

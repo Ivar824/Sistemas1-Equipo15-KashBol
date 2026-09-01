@@ -117,6 +117,51 @@ export default function VehiculosPage() {
     setIsDetailModalOpen(true);
   };
 
+  const handleVehiculoActualizado = async (vehiculoActualizado) => {
+  try {
+    // Obtener nuevamente el vehículo con los datos completos del propietario
+    const vehiculoCompleto = await vehiculoService.consultarPorPlaca(
+      vehiculoActualizado.placa
+    );
+
+    if (vehiculoCompleto) {
+
+      // Si se está viendo desde el modal de la tabla
+      if (
+        vehiculoSeleccionadoModal?.id_vehiculo ===
+        vehiculoActualizado.id_vehiculo
+      ) {
+        setVehiculoSeleccionadoModal(vehiculoCompleto);
+      }
+
+      // Si se está viendo desde una búsqueda por placa
+      if (
+        vehiculoConsultado?.id_vehiculo ===
+        vehiculoActualizado.id_vehiculo
+      ) {
+        setVehiculoConsultado(vehiculoCompleto);
+        setPlacaBuscada(vehiculoCompleto.placa);
+      }
+    }
+
+    // Recargar listado general
+    await cargarVehiculos();
+
+    setGeneralAlert({
+      type: 'success',
+      message: `Vehículo placa "${vehiculoActualizado.placa}" actualizado correctamente.`,
+    });
+  } catch (error) {
+    console.error('Error al refrescar vehículo actualizado:', error);
+
+    setGeneralAlert({
+      type: 'error',
+      message:
+        'El vehículo fue actualizado, pero no se pudo refrescar la información.',
+    });
+  }
+};
+
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-6">
       {/* Notificación general */}
@@ -179,9 +224,10 @@ export default function VehiculosPage() {
             </button>
           </div>
           <VehiculoDetail
-            vehiculo={vehiculoConsultado}
-            onReset={handleResetConsulta}
-          />
+  vehiculo={vehiculoConsultado}
+  onReset={handleResetConsulta}
+  onUpdated={handleVehiculoActualizado}
+/>
         </div>
       )}
 
@@ -342,14 +388,16 @@ export default function VehiculosPage() {
 
       {/* Modal de Detalle al hacer clic en "VER" desde la tabla */}
       <Modal
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        title={`Ficha del Vehículo ${vehiculoSeleccionadoModal?.placa || ''}`}
-      >
+  isOpen={isDetailModalOpen}
+  onClose={() => setIsDetailModalOpen(false)}
+  title={`Ficha del Vehículo ${vehiculoSeleccionadoModal?.placa || ''}`}
+  maxWidth="max-w-3xl"
+>
         <VehiculoDetail
-          vehiculo={vehiculoSeleccionadoModal}
-          onReset={() => setIsDetailModalOpen(false)}
-        />
+  vehiculo={vehiculoSeleccionadoModal}
+  onReset={() => setIsDetailModalOpen(false)}
+  onUpdated={handleVehiculoActualizado}
+/>
       </Modal>
     </div>
   );
