@@ -8,7 +8,7 @@ import {
   CreditCard, 
   BarChart3, 
   LogOut,
-  ShieldCheck 
+  ShieldCheck, 
 } from 'lucide-react';
 
 export default function Sidebar({ activeTab, setActiveTab, onLogout, user }) {
@@ -18,8 +18,16 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout, user }) {
     { id: 'vehiculos', label: 'VEHÍCULOS', icon: Car, enabled: true, badge: 'HU-03 / HU-04' },
     { id: 'servicios', label: 'SERVICIOS', icon: Wrench, enabled: true, badge: 'Sprint 2' },
     { id: 'repuestos', label: 'REPUESTOS', icon: Package, enabled: true, badge: 'Sprint 2' },
-    { id: 'pagos', label: 'PAGOS', icon: CreditCard, enabled: false, badge: 'Sprint 3' },
+    { id: 'pagos', label: 'PAGOS', icon: CreditCard, enabled: true, badge: 'Sprint 3' },
+    {
+  id: 'privacidad',
+  label: 'PRIVACIDAD',
+  icon: ShieldCheck,
+  enabled: true,
+  badge: 'Datos',
+},
     { id: 'informes', label: 'INFORMES', icon: BarChart3, enabled: false, badge: 'Sprint 3' },
+    
   ];
 
   return (

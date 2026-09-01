@@ -8,6 +8,8 @@ import ClientesPage from './pages/ClientesPage.jsx';
 import VehiculosPage from './pages/VehiculosPage.jsx';
 import ServiciosPage from './pages/ServiciosPage.jsx';
 import RepuestosPage from './pages/RepuestosPage.jsx';
+import PagosPage from './pages/PagosPage.jsx';
+import PrivacidadPage from './pages/PrivacidadPage.jsx';
 import { Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -64,6 +66,10 @@ export default function App() {
         return 'Gestión de Servicios (Sprint 2)';
         case 'repuestos':
   return 'Gestión de Repuestos (Sprint 2)';
+  case 'pagos':
+  return 'Gestión de Pagos (Sprint 3)';
+  case 'privacidad':
+  return 'Privacidad y Datos Personales';
       default:
         return 'Taller Mecánico';
     }
@@ -107,6 +113,8 @@ export default function App() {
 {activeTab === 'vehiculos' && <VehiculosPage />}
 {activeTab === 'servicios' && <ServiciosPage />}
 {activeTab === 'repuestos' && <RepuestosPage />}
+{activeTab === 'pagos' && <PagosPage />}
+{activeTab === 'privacidad' && <PrivacidadPage />}
         </main>
       </div>
     </div>

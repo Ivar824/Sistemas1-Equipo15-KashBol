@@ -17,6 +17,7 @@ import {
 import { servicioService } from '../services/servicioService.js';
 import ServicioForm from '../components/servicios/ServicioForm.jsx';
 import ServicioRepuestoForm from '../components/servicios/ServicioRepuestoForm.jsx';
+import TrabajoRealizadoForm from '../components/servicios/TrabajoRealizadoForm.jsx';
 import Modal from '../components/common/Modal.jsx';
 import Alert from '../components/common/Alert.jsx';
 
@@ -46,6 +47,7 @@ export default function ServiciosPage() {
   const [repuestosServicio, setRepuestosServicio] = useState([]);
 const [loadingRepuestosServicio, setLoadingRepuestosServicio] = useState(false);
 const [mostrarFormularioRepuesto, setMostrarFormularioRepuesto] = useState(false);
+const [mostrarFormularioTrabajo, setMostrarFormularioTrabajo] = useState(false);
 
   /**
    * Cargar estadísticas y listado desde Supabase
@@ -134,7 +136,10 @@ const [mostrarFormularioRepuesto, setMostrarFormularioRepuesto] = useState(false
   const handleVerDetalle = async (servicio) => {
   setServicioSeleccionado(servicio);
   setRepuestosServicio([]);
+
   setMostrarFormularioRepuesto(false);
+  setMostrarFormularioTrabajo(false);
+
   setIsDetailModalOpen(true);
 
   await cargarRepuestosServicio(
@@ -154,6 +159,19 @@ const handleRepuestoAgregado = async () => {
   setGeneralAlert({
     type: 'success',
     message: `Repuesto agregado correctamente a la orden #${servicioSeleccionado.id_servicio}. El stock fue actualizado automáticamente.`,
+  });
+};
+
+const handleTrabajoActualizado = async (servicioActualizado) => {
+  setServicioSeleccionado(servicioActualizado);
+
+  setMostrarFormularioTrabajo(false);
+
+  await cargarDatos();
+
+  setGeneralAlert({
+    type: 'success',
+    message: `Trabajo realizado de la orden #${servicioActualizado.id_servicio} guardado correctamente.`,
   });
 };
 
@@ -258,6 +276,23 @@ const handleAvanzarEstado = async () => {
     setActualizandoEstado(false);
   }
 };
+
+const calcularTotalRepuestos = () => {
+  return repuestosServicio.reduce(
+    (total, item) =>
+      total + Number(item.subtotal || 0),
+    0
+  );
+};
+
+const calcularTotalServicio = () => {
+  const manoObra = Number(
+    servicioSeleccionado?.costo_mano_obra || 0
+  );
+
+  return manoObra + calcularTotalRepuestos();
+};
+
 
   useEffect(() => {
     cargarDatos();
@@ -742,6 +777,114 @@ const handleAvanzarEstado = async () => {
               </p>
             </div>
 
+            {/* Trabajo realizado */}
+<div className="border-t border-taller-border pt-5">
+
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+
+    <div>
+      <h4 className="text-sm font-bold text-gray-100 uppercase flex items-center gap-2">
+        <Wrench className="w-4 h-4 text-blue-400" />
+        Trabajo Realizado
+      </h4>
+
+      <p className="text-xs text-gray-500 mt-1">
+        Descripción de la reparación y costo de mano de obra
+      </p>
+    </div>
+
+    {permiteAgregarRepuestos(
+      servicioSeleccionado.estado
+    ) && (
+      <button
+        type="button"
+        onClick={() =>
+          setMostrarFormularioTrabajo(
+            !mostrarFormularioTrabajo
+          )
+        }
+        className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold"
+      >
+        {mostrarFormularioTrabajo
+          ? 'CANCELAR'
+          : servicioSeleccionado.trabajo_realizado
+            ? 'EDITAR TRABAJO'
+            : 'REGISTRAR TRABAJO'}
+      </button>
+    )}
+
+  </div>
+
+  {/* Formulario */}
+  {mostrarFormularioTrabajo && (
+    <div className="mb-5 bg-taller-card border border-taller-border rounded-xl p-4">
+
+      <TrabajoRealizadoForm
+        servicio={servicioSeleccionado}
+        onSuccess={handleTrabajoActualizado}
+        onCancel={() =>
+          setMostrarFormularioTrabajo(false)
+        }
+      />
+
+    </div>
+  )}
+
+  {/* Información guardada */}
+  {servicioSeleccionado.trabajo_realizado ? (
+
+    <div className="bg-taller-surface border border-taller-border rounded-xl p-4">
+
+      <p className="text-xs text-gray-500 uppercase mb-2">
+        Descripción del trabajo
+      </p>
+
+      <p className="text-sm text-gray-200 whitespace-pre-wrap">
+        {servicioSeleccionado.trabajo_realizado}
+      </p>
+
+      <div className="flex items-center justify-between mt-4 pt-4 border-t border-taller-border">
+
+        <span className="text-xs text-gray-500">
+          Mano de obra
+        </span>
+
+        <span className="text-base font-bold text-blue-300">
+          Bs{' '}
+          {Number(
+            servicioSeleccionado.costo_mano_obra || 0
+          ).toFixed(2)}
+        </span>
+
+      </div>
+
+    </div>
+
+  ) : (
+
+    <div className="border border-dashed border-taller-border rounded-xl py-6 text-center">
+
+      <Wrench className="w-6 h-6 text-gray-600 mx-auto mb-2" />
+
+      <p className="text-xs text-gray-500">
+        Aún no se registró el trabajo realizado.
+      </p>
+
+    </div>
+
+  )}
+
+  {!permiteAgregarRepuestos(
+    servicioSeleccionado.estado
+  ) &&
+    !servicioSeleccionado.trabajo_realizado && (
+      <p className="text-xs text-orange-300 mt-3">
+        La orden está cerrada y ya no puede modificarse.
+      </p>
+    )}
+
+</div>
+
             {/* Repuestos utilizados */}
 <div className="border-t border-taller-border pt-5">
 
@@ -779,6 +922,8 @@ const handleAvanzarEstado = async () => {
     )}
 
   </div>
+
+  
 
   {/* Formulario */}
   {mostrarFormularioRepuesto && (
@@ -905,6 +1050,61 @@ const handleAvanzarEstado = async () => {
       Esta orden está cerrada. Ya no se pueden agregar repuestos.
     </p>
   )}
+
+</div>
+
+{/* Resumen económico */}
+<div className="border-t border-taller-border pt-5">
+
+  <h4 className="text-sm font-bold text-gray-100 uppercase mb-4">
+    Resumen del Servicio
+  </h4>
+
+  <div className="bg-taller-surface border border-taller-border rounded-xl overflow-hidden">
+
+    {/* Mano de obra */}
+    <div className="flex items-center justify-between px-4 py-3 border-b border-taller-border">
+
+      <span className="text-sm text-gray-400">
+        Mano de obra
+      </span>
+
+      <span className="text-sm font-semibold text-gray-200">
+        Bs{' '}
+        {Number(
+          servicioSeleccionado.costo_mano_obra || 0
+        ).toFixed(2)}
+      </span>
+
+    </div>
+
+    {/* Repuestos */}
+    <div className="flex items-center justify-between px-4 py-3 border-b border-taller-border">
+
+      <span className="text-sm text-gray-400">
+        Repuestos
+      </span>
+
+      <span className="text-sm font-semibold text-gray-200">
+        Bs {calcularTotalRepuestos().toFixed(2)}
+      </span>
+
+    </div>
+
+    {/* Total */}
+    <div className="flex items-center justify-between px-4 py-4 bg-blue-500/5">
+
+      <span className="text-sm font-bold text-gray-100 uppercase">
+        Total del servicio
+      </span>
+
+      <span className="text-xl font-bold text-blue-300">
+        Bs {calcularTotalServicio().toFixed(2)}
+      </span>
+
+    </div>
+
+  </div>
 
 </div>
 

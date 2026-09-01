@@ -361,4 +361,102 @@ export const servicioService = {
       ? data[0]
       : data;
   },
+
+    /**
+   * Registrar o actualizar el trabajo realizado
+   * y el costo de mano de obra.
+   */
+  async actualizarTrabajo(
+    idServicio,
+    trabajoRealizado,
+    costoManoObra
+  ) {
+    if (!idServicio) {
+      throw new Error(
+        'No se pudo identificar la orden de servicio.'
+      );
+    }
+
+    const trabajo = trabajoRealizado?.trim();
+    const costo = Number(costoManoObra);
+
+    if (!trabajo || trabajo.length < 5) {
+      throw new Error(
+        'El trabajo realizado debe contener al menos 5 caracteres.'
+      );
+    }
+
+    if (
+      Number.isNaN(costo) ||
+      costo < 0
+    ) {
+      throw new Error(
+        'El costo de mano de obra no es válido.'
+      );
+    }
+
+    // Consultar estado actual de la orden
+    const { data: ordenActual, error: consultaError } =
+      await supabase
+        .from('ORDEN_SERVICIO')
+        .select('id_servicio, estado')
+        .eq('id_servicio', idServicio)
+        .single();
+
+    if (consultaError) {
+      console.error(
+        '[servicioService] Error al consultar orden:',
+        consultaError
+      );
+
+      throw new Error(
+        'No se pudo consultar la orden de servicio.'
+      );
+    }
+
+    if (
+      ordenActual.estado === 'Finalizado' ||
+      ordenActual.estado === 'Entregado'
+    ) {
+      throw new Error(
+        'No se puede modificar el trabajo de una orden finalizada o entregada.'
+      );
+    }
+
+    const { data, error } = await supabase
+      .from('ORDEN_SERVICIO')
+      .update({
+        trabajo_realizado: trabajo,
+        costo_mano_obra: costo,
+      })
+      .eq('id_servicio', idServicio)
+      .select(`
+        *,
+        VEHICULO:id_vehiculo (
+          id_vehiculo,
+          placa,
+          marca,
+          modelo,
+          anio,
+          color,
+          tipo,
+          id_cliente
+        )
+      `)
+      .single();
+
+    if (error) {
+      console.error(
+        '[servicioService] Error al actualizar trabajo realizado:',
+        error
+      );
+
+      throw new Error(
+        error.message ||
+          'No se pudo registrar el trabajo realizado.'
+      );
+    }
+
+    return data;
+  },
 };
